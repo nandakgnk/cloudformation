@@ -1,0 +1,83 @@
+#Cloudformation
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template to create an EC2 instance with existing VPC, key pair, subnets, and security group.
+
+Parameters:
+  VPCID:
+    Description: VPC
+    Type: AWS::EC2::VPC::Id
+    ConstraintDescription: Must be the name of an existing VPC in the Region.
+
+  SubnetId:
+    Description: Subnet ID where the EC2 instance will reside
+    Type: AWS::EC2::Subnet::Id
+    ConstraintDescription: Must be the name of an existing subnet in the Region.
+
+  SecurityGroupId:
+    Description: ID of the existing Security Group
+    Type: String
+
+  ImageId:
+    Description: ID of the Amazon Machine Image (AMI) for the EC2 instance
+    Type: AWS::EC2::Image::Id
+    ConstraintDescription: Must enter the AMI from the same VPC region
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.medium
+    AllowedValues:
+      - t2.medium
+      - t2.large
+
+  InstanceName: 
+    Description: Name for the EC2 instance
+    Type: String
+
+  Environment:
+    Description: Environment type (dev, qa, stg, prod)
+    Type: String
+    Default: dev
+    AllowedValues: [dev, qa, stg, prod]
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1  # Device Name depends on OS
+          Ebs:
+            VolumeType: gp2  # Specify the desired volume type (e.g., gp2, io1)
+            VolumeSize: 30  # Set your preferred size in GiBs
+            DeleteOnTermination: true  # Adjust as needed
+      SecurityGroupIds:
+        - !Ref SecurityGroupId 
+      KeyName: !Ref KeyName
+      ImageId: !Ref ImageId
+      DisableApiTermination: false
+      Monitoring: false
+      UserData:
+        Fn::Base64: !Sub |
+          <powershell>
+          Write-Host "message"
+          </powershell>
+      # Tags based on parameters
+      Tags:
+        - Key: Name
+          Value: !Ref InstanceName
+        - Key: Environment
+          Value: !Ref Environment  
+Outputs:
+  PrivateIpAddress:
+    Description: Private IP address of the EC2 instance
+    Value: !GetAtt EC2Instance.PrivateIp
+
+  PrivateDnsName:
+    Description: Private DNS name of the EC2 instance
+    Value: !GetAtt EC2Instance.PrivateDnsName
