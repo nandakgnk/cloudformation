@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Template to create an EC2 instance with existing VPC, key pair, subnets, and security group.
 
 Parameters:
-  VPCID:
+  VpcId:
     Description: VPC
     Type: AWS::EC2::VPC::Id
     ConstraintDescription: Must be the name of an existing VPC in the Region.
@@ -60,6 +60,7 @@ Resources:
         - !Ref SecurityGroupId 
       KeyName: !Ref KeyName
       ImageId: !Ref ImageId
+      SubnetId: !Ref SubnetId 
       DisableApiTermination: false
       Monitoring: false
       UserData:
