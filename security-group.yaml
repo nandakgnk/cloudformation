@@ -1,0 +1,48 @@
+#Template for Security Group Creation
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template to create a new security group
+Parameters:
+  VPCID:
+    Description: VPC ID
+    Type: AWS::EC2::VPC::Id
+    ConstraintDescription: Must be the name of an existing VPC in the Region. 
+  SecurityGroupName: 
+    Description: "Name of the Security Group"
+    Type: String
+  Environment:
+    Description: Environment type (dev, qa, stg, prod)
+    Type: String
+    Default: dev
+    AllowedValues: [Development, Test, Stage, Production]
+Resources:
+  VPCSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "VPC Security Group"
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'  # SSH
+          ToPort: '22'
+          CidrIp: '10.0.0.0/8'
+        - IpProtocol: tcp
+          FromPort: '3389'  # RDP
+          ToPort: '3389'
+          CidrIp: '10.0.0.0/8'   
+      SecurityGroupEgress:    
+#        - Description: "Allow all outbound traffic"
+#          IpProtocol: "-1"   
+#          CidrIp: '10.0.0.0/8'
+        - IpProtocol: tcp
+          FromPort: '80'  # RDP
+          ToPort: '80'
+          CidrIp: '10.0.0.0/8'   
+      Tags:
+        - Key: Name
+          Value: !Ref SecurityGroupName
+        - Key: Environment
+          Value: !Ref Environment  
+Outputs:
+  SecurityGroupID:
+    Description: Security Group ID
+    Value: !Ref VPCSecurityGroup
